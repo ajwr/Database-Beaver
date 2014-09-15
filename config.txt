@@ -1,0 +1,13 @@
+# Database configuration
+hostname=localhost
+username=umls1
+port=3306
+password=Umls12
+databasename=UMLS
+
+# Default files (ONLY USED WHEN NOT SPECIFIED BY COMMANDLINE CALL)
+inputCUIFile=TheTester.txt
+topLevelTierFile=TheTestSetTopHier.txt
+finalHierarchyFile=FinalHierarchy.owl
+logFile=logFile.txt
+dirtyHierarchyFile=DirtyHierarchy.owl

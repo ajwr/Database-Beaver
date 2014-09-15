@@ -1,0 +1,211 @@
+UMLSSubsetBuilder  Version 1.0        9/9/2014
+Copyright (c) 2014 Alex Richardson. All Rights Reserved.
+
+email: [put here]
+
+DESCRIPTION
+-----------
+This program develops a hierarchy based on a set of input CUIs and and top-level
+concepts. Outputs the hierarchy in OWL format for use with Protege.
+
+    The hierarchy is characterized by a "Two or More Child" Policy per node
+as well as a "No Redundancy" Policy for relationships.
+
+
+LICENSE
+--------
+This software is Copyright (c) 2014 The Regents of the University of California. All Rights Reserved.
+
+Permission to copy, modify, and distribute this software and its documentation for educational, research and non-profit purposes, without fee, and without a written agreement is hereby granted, provided that the above copyright notice, this paragraph and the following three paragraphs appear in all copies.
+
+Permission to make commercial use of this software may be obtained by contacting:
+
+Technology Transfer Office
+9500 Gilman Drive, Mail Code 0910
+University of California
+La Jolla, CA 92093-0910
+(858) 534-5815
+invent@ucsd.edu
+
+This software program and documentation are copyrighted by The Regents of the University of California. The software program and documentation are supplied "as is", without any accompanying services from The Regents. The Regents does not warrant that the operation of the program will be uninterrupted or error-free. The end-user understands that the program was developed for research purposes and is advised not to rely exclusively on the program for any reason.
+
+IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO
+ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR
+CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING
+OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION,
+EVEN IF THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE. THE UNIVERSITY OF
+CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATIONS TO
+PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
+MODIFICATIONS.
+
+
+PREREQUISITES (UBUNTU)
+----------------------
+Ubuntu Version 12.04
+Python Version 2.7+
+MySQL Server Version 5.5+
+python-mysqldb Version 1.2.3 (Install python-mysqldb 'apt-get install 
+                              python-mysqldb')
+
+
+PREREQUISITES (CENTOS)
+----------------------
+CentOS Version 6.5
+Python Version 2.7+
+MySQL Server Version 5.5+
+mysql-python (Install python-mysqldb via 'easy_install MySQL-python')
+
+
+INSTALLATION STEPS
+------------------
+1a. git from repository
+1b. From latest release expand the tar.gz archive
+2a. Set up configuration file (config.txt). Use the following format:
+
+[File Start]
+# Database configuration
+hostname=...
+username=...
+port=...
+password=...
+databasename=...
+
+# Default parameter files (ONLY USED WHEN NOT SPECIFIED BY COMMANDLINE
+# CALL)
+inputCUIFile=...
+topLevelTierFile=...
+finalHierarchyFile=...
+logFile=...
+dirtyHierarchyFile=...
+[File End]
+
+2b. Default parameter file descriptions:
+    inputCUIFile will contain the list of base CUIs to build the hierarchy from.
+        These will be the CUIs used to gather relationships from the UMLS. The 
+        CUIs should be delimited by a new line character (look at INPUT FILE 
+        FORMAT SPECIFICATIONS below for more details).
+    topLevelTierFile will contain the list of top level CUIs to build the
+        the hierarchy up to. These CUIs should be delimited by a new
+        line character. (look at INPUT FILE FORMAT SPECIFICATIONS below)
+    finalHierarchyFile will be used for writing the final hierachy out to in OWL
+        format. This output file can be used with Protege.
+    logFile will be used for logging when debug mode is enabled.
+    dirtyHierarchyFile will be used when debug mode is enabled to save the
+        initial hierarchy before it undergoes the clean-up process
+
+
+USAGE
+-----
+There are two ways to use the ULMSSubsetBuilder: either by providing all 3
+parameter files (inputCUIFile, topLevelTierFile, outputFile), or none at all.
+If no parameter files are provided to the program through the commandline,
+then the default parameter files from the configuration file will be used.
+
+You can optionally use the -x parameter to turn on DebugMode. The name of
+the logFile you would like to use can also be provided after the -x parameter if
+desired.
+
+NOTE: Be sure the inputCUIFile and topLevelTierFile are formatted according to
+the guidelines indicated by the INPUT FILE FORMAT SPECIFICATIONS below
+
+For example:
+UMLSSubsetBuilder.py inputCUIFile topLevelTierFile outputFile [-x DebugMode][logFile]
+or
+UMLSSubsetBuilder.py [-x DebugMode][logFile]
+
+
+Also: use '-u' commandline argument for brief usage message
+
+
+IMPORTANT!!! INPUT FILE FORMAT SPECIFICATIONS
+--------------------------------
+For both the inputCUIFile and topLevelTierFile as specific format is REQUIRED.
+Each CUI much be delimited by a new line. Be sure to not abbreviate or change
+the CUIs in any way. If these specifications are not follow the program may 
+fail to produce the desired hierarchy with all the input CUIS, or any 
+hierarchy at all.
+
+For example:
+
+[File Start]
+C0493022
+C0593029
+C0192903
+C9090830
+C1234020
+[File End]
+
+
+
+OUTPUT
+------
+This program outputs the Hierarchy in OWL format to either the file specified
+by the commandline arguments or to the default file specified by the
+configuration file. The output file is designed to be used with Protege 4.3+. 
+Protege can be downloaded from http://protege.stanford.edu/
+
+When debug mode is enabled, a second Hierarchy (the "dirty", uncleaned
+hierarchy) will also be saved to the file specified in the configuration file.
+
+
+
+DEBUG MODE INFO
+---------------
+When enabled for DebugMode, the program will log the raw datastructures
+constructed during program execution into the specified or default logFile.
+It will also log the number of relationships removed during each run through
+the redundancy reduction algorithm. The datastructures logged will include:
+
+relationsDict    - contains the initial relationships gathered based on the input
+                   CUIs. Contains much excess informations not relevant to the
+                   final hierachy
+translatedDict   - contains the 'translated' relationsDict. 'Translated' means
+                   the entries will be in cui-name format for readability
+leaves           - contains the input CUIs that the hierachy is built off of
+translatedLeaves - contains the 'translated' leaves
+loopsDict        - contains the loops found during execution
+initialHierarchy - contains the hierachy created before the clean-up process
+finishedHier     - contains the relevant relationships describing the final
+                   final hierachy
+
+In addition to making log entries, debug mode will save the initial hierarchy
+created pre-cleanup to the file specified in the configuration file. The rules
+will not be applied to this hierarchy.
+
+
+FILE DESCRIPTIONS
+-----------------
+UMLSSubsetBuilder.py: The main script that creates the hierarchy by making calls
+    to functions and classes contained in translator.py and owlwriter.py
+hierarchyBuilder.py: The supplementary file containing functions used for
+    cleaning the hierarchy and eliminating redundancy. The two rules followed
+    by these functions are described in RULES USED IN HIERARCHY CREATION below
+owlwriter.py: The supplementary file containing the ontology class for writing
+    the final hierarchy in OWL format.
+
+
+
+RULES USED IN HIERARCHY CREATION
+--------------------------------
+Two or More Children Policy: Each node of the hierarchy must have at
+    at least 2 children to be considered valid. If it does not, the node
+    is removed from the hierarchy and new relationships are established between
+    the removed node's parent and the removed node's children. The one exception
+    is when the parent is an input CUI, in which case it will be kept in the
+    hierarchy regardless of child count. In this case, the input CUI will be
+    considered valid and no relationships will be established between the input
+    CUI's children and the input CUI's parent.
+
+No Redundancy Policy: No redundant relationships are allowed. A
+    relationship is considered redundant when it directly connects
+    two nodes which are already indirectly connected through a separate
+    pathway (ie. if the pathway node1->node2->node3 exists then a 
+    relationship directly from node1->node3 is illegal because node3 is 
+    already indirectly connected to node1 by the first pathway). These
+    relationships are simply deleted from the hierachy
+
+

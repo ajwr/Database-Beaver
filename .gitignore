@@ -1,0 +1,9 @@
+# No OWL files
+*.owl
+
+# No .pyc files
+*.pyc
+
+# No text files except for LICENSE.txt
+*.txt
+!LICENSE.txt
