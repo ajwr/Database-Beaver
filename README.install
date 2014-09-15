@@ -1,7 +1,7 @@
 UMLSSubsetBuilder  Version 1.0        9/9/2014
 Copyright (c) 2014 Alex Richardson. All Rights Reserved.
 
-email: [put here]
+email: junk_mail9@me.com
 
 DESCRIPTION
 -----------
@@ -62,8 +62,7 @@ mysql-python (Install python-mysqldb via 'easy_install MySQL-python')
 
 INSTALLATION STEPS
 ------------------
-1a. git from repository
-1b. From latest release expand the tar.gz archive
+1. git from repository: https://github.com/ajwr/Database-Beaver
 2a. Set up configuration file (config.txt). Use the following format:
 
 [File Start]

@@ -84,7 +84,7 @@ configAttributes = ['username','password','port','databasename','hostname',\
 configs = dict()
 
 # Print usage message
-if sys.argv[1] == '-u':
+if len(sys.argv) > 1 and sys.argv[1] == '-u':
     print "Usage: UMLSSubsetBuilder.py [inputFile][topTier][finalHierarchyFile][-x DebugMode][logfile]"
     print "See README or .___doc__ for more informations."
     sys.exit()
