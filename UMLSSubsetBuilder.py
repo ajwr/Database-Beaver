@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import MySQLdb
 import sys
+import os
 from datetime import datetime
 from collections import defaultdict
 from hierarchyBuilder import cleanUpRelations, writeToFile, reduceRedundancy, \
@@ -76,6 +77,11 @@ startTime = datetime.now()
 lastTime = startTime # Time script was started, used to track progress
 TIMETRACKING = True
 timeElapsed = 0
+
+# Unbuffered stdout
+unbuffered = os.fdopen(sys.stdout.fileno(), 'w', 0)
+sys.stdout.close()
+sys.stdout = unbuffered
 
 # Configuration Attributes
 configAttributes = ['username','password','port','databasename','hostname',\
