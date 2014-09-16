@@ -13,7 +13,8 @@ hierarchy in OWL format for use with Protege.
     The hierarchy is characterized by a "Two or More Child" Policy per node
 as well as a "No Redundancy" Policy for relationships.
 
-Usage: UMLSSubsetBuilder.py [inputFile][topTier][finalHierarchyFile][-x DebugMode][logfile]
+Usage: UMLSSubsetBuilder.py [inputFile][topTier][finalHierarchyFile][-x DebugMode]
+                            [logfile][dirtyHierarchyFile]
 
 
 Note: If no commandline arguments are given, then the default files specified in
@@ -32,7 +33,11 @@ Input:
                  reduction algorithm. It will also save the initial hierarchy
                  created to the file specified in the configuration file. See
                  the README file for more information on debug mode.
-    logfile    = [Optional] The file to log to.
+    logfile    = [Optional] If provided, The file to log to when debug mode
+                 is enabled.
+    dirtyHierarchyFile = [Optional] When debug mode is enabled, if provided,
+                         the file will be used to save the initial hierarchy
+                         before it undergoes the clean-up process.
 
 This software is Copyright (c) 2014 The Regents of the University of California. All Rights Reserved.
 
@@ -80,7 +85,6 @@ timeElapsed = 0
 
 # Unbuffered stdout
 unbuffered = os.fdopen(sys.stdout.fileno(), 'w', 0)
-sys.stdout.close()
 sys.stdout = unbuffered
 
 # Configuration Attributes
@@ -91,19 +95,19 @@ configs = dict()
 
 # Print usage message
 if len(sys.argv) > 1 and sys.argv[1] == '-u':
-    print "Usage: UMLSSubsetBuilder.py [inputFile][topTier][finalHierarchyFile][-x DebugMode][logfile]"
+    print "Usage: UMLSSubsetBuilder.py [inputFile][topTier][finalHierarchyFile][-x DebugMode][logfile][dirtyHierarchyFile]"
     print "See README or .___doc__ for more informations."
     sys.exit()
 
 # Print usage message if incorrect # of command line args
 if not areValidArguments(sys.argv):
     print "Incorrect # of arguments"
-    print """Usage: UMLSSubsetBuilder.py [inputFile][topTier][finalHierarchyFile][-x DebugMode][logfile]
+    print """Usage: UMLSSubsetBuilder.py [inputFile][topTier][finalHierarchyFile][-x DebugMode][logfile][dirtyHierarchyFile]
     Note: either all 3 parameter files must be provided or none at all.
     For example:
-        UMLSSubsetBuilder.py inputFile topTier finalHierarchyFile [-x DebugMode][logfile]
+        UMLSSubsetBuilder.py inputFile topTier finalHierarchyFile [-x DebugMode][logfile][dirtyHierarchyFile]
         or
-        UMLSSubsetBuilder.py [-x DebugMode][logfile]"""
+        UMLSSubsetBuilder.py [-x DebugMode][logfile][dirtyHierarchyFile]"""
 
     sys.exit()
 
@@ -157,12 +161,20 @@ if (len(sys.argv) >= 5 and sys.argv[4] == '-x') or (len(sys.argv) >= 2\
         and sys.argv[1] == '-x'):
     debugOn = True
 
-# Save desired logFile if specified by commandline arguments
+# Save desired logFile  and dirtyHierarachyFile if specified by commandline
+# arguments
 if debugOn:
-    if len(sys.argv) == 3:
+    # Save logfile
+    if len(sys.argv) == 3 or len(sys.argv) == 4:
         configs['logFile'] = sys.argv[2]
-    if len(sys.argv) == 6:
+    elif len(sys.argv) == 6 or len(sys.argv) == 7:
         configs['logFile'] = sys.argv[5]
+
+    # Save the dirtyHierarchyFile if it is provided
+    if len(sys.argv) == 4:
+        configs['dirtyHierarchyFile'] = sys.argv[3]
+    elif len(sys.argv) == 7:
+        configs['dirtyHierarchyFile'] = sys.argv[6]
 
 # Open the file to be used for logging
 if debugOn:
@@ -175,7 +187,7 @@ if debugOn:
                     datetime.today()))
 
 # Save commandline argument files to use if provided
-if len(sys.argv) >= 4:
+if (len(sys.argv) == 4 and not debugOn) or (len(sys.argv) > 4):
     configs['inputCUIFile'] = sys.argv[1]
     configs['topLevelTierFile'] = sys.argv[2]
     configs['finalHierarchyFile'] = sys.argv[3]

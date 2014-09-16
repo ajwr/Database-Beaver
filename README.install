@@ -105,16 +105,18 @@ If no parameter files are provided to the program through the commandline,
 then the default parameter files from the configuration file will be used.
 
 You can optionally use the -x parameter to turn on DebugMode. The name of
-the logFile you would like to use can also be provided after the -x parameter if
-desired.
+the logFile you would like to use can also be provided after the -x parameter
+if desired. The name of the dirtyHierarchyFile can also be provided after the
+logFile. If the logFile and dirtyHierarchyFile are not provided, the default
+files from the configuration file will be used.
 
 NOTE: Be sure the inputCUIFile and topLevelTierFile are formatted according to
 the guidelines indicated by the INPUT FILE FORMAT SPECIFICATIONS below
 
 For example:
-UMLSSubsetBuilder.py inputCUIFile topLevelTierFile outputFile [-x DebugMode][logFile]
+UMLSSubsetBuilder.py inputCUIFile topLevelTierFile outputFile [-x DebugMode][logFile][dirtyHierarchyFile]
 or
-UMLSSubsetBuilder.py [-x DebugMode][logFile]
+UMLSSubsetBuilder.py [-x DebugMode][logFile][dirtyHierarchyFile]
 
 
 Also: use '-u' commandline argument for brief usage message
@@ -148,7 +150,8 @@ configuration file. The output file is designed to be used with Protege 4.3+.
 Protege can be downloaded from http://protege.stanford.edu/
 
 When debug mode is enabled, a second Hierarchy (the "dirty", uncleaned
-hierarchy) will also be saved to the file specified in the configuration file.
+hierarchy) will also be saved to the file either specified in the commandline
+arugments or, as default, in the configuration file.
 
 
 
@@ -172,8 +175,9 @@ finishedHier     - contains the relevant relationships describing the final
                    final hierachy
 
 In addition to making log entries, debug mode will save the initial hierarchy
-created pre-cleanup to the file specified in the configuration file. The rules
-will not be applied to this hierarchy.
+created pre-cleanup to the file specified by either the commandline arugments
+or, by default, in the configuration file. The rules will not be applied to 
+this hierarchy.
 
 
 FILE DESCRIPTIONS

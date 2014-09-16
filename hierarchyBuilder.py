@@ -372,22 +372,18 @@ def areValidArguments(arguments):
     # Calling the UMLSSubsetBuilder with no commandline arguments is valid
     if len(arguments) == 1:
         return True
-    # If only 2 or 3 arguments are provided, they must be for debug mode
+    # If only 1 or 2 arguments are provided, they must be for debug mode
     if len(arguments) == 2 or len(arguments) == 3:
         if arguments[1] == '-x':
             return True
         else:
             return False
-    # If 3 arguments are provided, they must all describe files and not for
-    # debug mode
+    # If 3 arguments are provided, they could be all be for debug or all
+    # describe files for input. Both are assumed to be true.
     if len(arguments) == 4:
-        if arguments[1] == '-x' or arguments [2] == '-x' or  \
-                arguments[3] == '-x':
-            return False
-        else:
             return True
-    # If 4 or 5 arguments are provided, the 4th must be for debug mode
-    if len(arguments) == 5 or len(arguments) == 6:
+    # If 4, 5, or 6 arguments are provided, the 4th must be for debug mode
+    if len(arguments) == 5 or len(arguments) == 6 or len(arguments) == 7:
         if arguments[4] == '-x':
             return True
         else:
