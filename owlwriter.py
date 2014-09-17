@@ -135,9 +135,7 @@ class ontology:
             # Add subclasses
             self.outfile.write(
                 '<rdfs:subClassOf rdf:resource="{}#{}"/>\n'.format(self.iri,\
-                    parent.replace(' ', '_').replace('(', '').replace(')', '').\
-                    replace(',', '').replace("\'", '').replace("\"", '').\
-                    replace("[","").replace("]", "").replace("&", "and")))
+                    parent))
 
         self.indent()
         # End class definition

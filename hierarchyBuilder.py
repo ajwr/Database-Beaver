@@ -1,7 +1,6 @@
 from __future__ import print_function
 from owlwriter import ontology
 from collections import defaultdict
-import sys
 
 """Supplementory file  containing functions to build the Hierarchy \
     and clean up the relationships
@@ -207,7 +206,7 @@ def reduceRedundancy(ancestorList, relationsDict, parent, childList, \
 
 # Writes the hierarchy in XML format for protege
 def writeToFile (translatedLeaves, relationsDict, filename, topHier, loopDict):
-    """Writes the hierarchy in OWL format to a the specified file for use with
+    """Writes the hierarchy in OWL format to the specified file for use with
     Protege.
 
     Input:
@@ -240,8 +239,10 @@ def writeToFile (translatedLeaves, relationsDict, filename, topHier, loopDict):
 
     # Reorganize the relations dictionary to be child-based
     for nameCui in topHier:
+        # Clean illegal symbols (not valid in OWL format) from the names-cuis
+        cleanNameCui = nameCui
         # Add top level node to dictionary
-        childDict[nameCui].append('none')
+        childDict[cleanNameCui].append('none')
         reorganize(childDict, relationsDict, nameCui)
 
     # Clean up loops category
@@ -260,12 +261,7 @@ def writeToFile (translatedLeaves, relationsDict, filename, topHier, loopDict):
             continue
 
         # Clean up child's name by removing illegal symbols in protege
-        child = child.replace(' ', '_').replace('(', '').replace(')', '').\
-            replace(',', '').replace("\'", '').replace("\"", '').\
-            replace("[","").replace("]", "").replace("&", "and").replace("<","").\
-            replace(">","").replace("%","percent").replace("--","-").\
-            replace("^","").replace(';','-')
-
+        child = child
         hierarchy.addClass (child, parentList)
 
     # Write the ending statement
@@ -348,7 +344,8 @@ def matches (name1, name2):
 
 # Returns the preferred term for a CUI
 def determinePreferred (ttyStrLatQuery):
-    """Return the string containing the preferred term for a CUI.
+    """Return the string containing the preferred term for a CUI after removing
+    any illegal characters that would cause Protege reading errors.
 
     Input:
         names: List of tuples containing pairs of (TTY, String Name) of a cui.
@@ -361,12 +358,12 @@ def determinePreferred (ttyStrLatQuery):
     for tty, string, language in ttyStrLatQuery:
         # Return the preferred term
         if tty == 'PT':
-            return string
+            return removeIllegalChars(string)
         if language == 'ENG' and englishTerm == 'No English term':
             englishTerm = string
 
     # If not preferred term, use the first English term available
-    return englishTerm
+    return removeIllegalChars(englishTerm)
 
 def areValidArguments(arguments):
     """Returns true if the commandline arguments passed are valid.
@@ -397,4 +394,20 @@ def areValidArguments(arguments):
             return True
         else:
             return False
+
+def removeIllegalChars (cuiName):
+    """Removes any illegal characters that would cause Protege read errors
+    from the cui-name. Returns the fixed cui-name.
+
+    Input:
+        cui-name: The string containing the cui-name to clean up."""
+
+    cuiName = cuiName.replace(' ', '_').replace('(', '').replace(')', '').\
+            replace(',', '').replace("\'", '').replace("\"", '').\
+            replace("[","").replace("]", "").replace("&", "and").\
+            replace("<","").replace(">","").replace("%","percent").\
+            replace("--","-").replace("^","").replace(';','-').\
+            replace('/','or')
+
+    return cuiName
 
