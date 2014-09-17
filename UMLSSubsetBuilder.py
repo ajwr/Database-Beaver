@@ -369,7 +369,7 @@ if TIMETRACKING:
 translatedDict = defaultdict(list)
 
 # Translate the relationsDict from concepts to descriptions
-stringQuery = "SELECT TTY, STR from MRCONSO where CUI = '{}' "
+stringQuery = "SELECT TTY, STR, LAT from MRCONSO where CUI = '{}' "
 for parent, childList in relationsDict.items():
     # Add the parent concept to the dictionary with string name
     try:
@@ -441,7 +441,7 @@ if TIMETRACKING:
 # readability
 translatedLeaves = []
 # Translate the leaves from concepts to descriptions
-stringQuery = "SELECT TTY, STR from MRCONSO where CUI = '{}' "
+stringQuery = "SELECT TTY, STR, LAT from MRCONSO where CUI = '{}' "
 for leaf in leaves:
     # Add the parent concept to the dictionary with string name
     try:
@@ -490,7 +490,7 @@ loopsDict = defaultdict(list)
 for cui in topTier:
     # Query the cui to obtain its name
     try:
-        cur.execute("SELECT TTY, STR from MRCONSO where CUI = '{}'".format(cui))
+        cur.execute("SELECT TTY, STR, LAT from MRCONSO where CUI = '{}'".format(cui))
     except MySQLdb.Error, e:
         try:
             # Prints the error

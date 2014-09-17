@@ -1,6 +1,7 @@
 from __future__ import print_function
 from owlwriter import ontology
 from collections import defaultdict
+import sys
 
 """Supplementory file  containing functions to build the Hierarchy \
     and clean up the relationships
@@ -346,18 +347,26 @@ def matches (name1, name2):
 
 
 # Returns the preferred term for a CUI
-def determinePreferred (names):
+def determinePreferred (ttyStrLatQuery):
     """Return the string containing the preferred term for a CUI.
 
     Input:
         names: List of tuples containing pairs of (TTY, String Name) of a cui.
         A tty of 'PT' indicated the Prefered Term.
     """
-    # Loop through names until found the preferred term
-    for tty, string in names:
+
+    # Default return if no english or preferred term
+    englishTerm = "No English term"     # Loop through names until found the preferred term
+
+    for tty, string, language in ttyStrLatQuery:
         # Return the preferred term
         if tty == 'PT':
             return string
+        if language == 'ENG' and englishTerm == 'No English term':
+            englishTerm = string
+
+    # If not preferred term, use the first English term available
+    return englishTerm
 
 def areValidArguments(arguments):
     """Returns true if the commandline arguments passed are valid.
