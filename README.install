@@ -47,7 +47,7 @@ PREREQUISITES (UBUNTU)
 ----------------------
 Ubuntu Version 12.04
 Python Version 2.7+
-Git Version 1.7.9+ (you caninstall via 'sudo apt-get install git')
+Git Version 1.7.9+ (you can install via 'sudo apt-get install git')
 MySQL Server Version 5.5+ (you can install via:
     'sudo apt-get install mysql-client-core-5.5')
 python-mysqldb Version 1.2.3 (you can install via:
