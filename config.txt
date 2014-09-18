@@ -1,8 +1,8 @@
 # Database configuration
 hostname=localhost
-username=umls1
+username=
 port=3306
-password=Umls12
+password=
 databasename=UMLS
 
 # Default files (ONLY USED WHEN NOT SPECIFIED BY COMMANDLINE CALL)
