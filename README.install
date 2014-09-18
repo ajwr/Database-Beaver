@@ -172,10 +172,11 @@ translatedDict   - contains the 'translated' relationsDict. 'Translated' means
                    the entries will be in cui-name format for readability
 leaves           - contains the input CUIs that the hierachy is built off of
 translatedLeaves - contains the 'translated' leaves
-loopsDict        - contains the loops found during execution
-initialHierarchy - contains the hierachy created before the clean-up process
+loopsDict        - contains the 'translated' loops found during execution
+initialHierarchy - contains the 'translated' hierachy created before the 
+                   clean-up process
 finishedHier     - contains the relevant relationships describing the final
-                   final hierachy
+                   hierachy
 
 In addition to making log entries, debug mode will save the initial hierarchy
 created pre-cleanup to the file specified by either the commandline arugments

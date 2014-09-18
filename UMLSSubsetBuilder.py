@@ -267,10 +267,6 @@ if TIMETRACKING:
                                                     currentTime - lastTime)
     lastTime = currentTime
 
-# Establish string for queries
-query = "SELECT CUI1, REL, CUI2, SAB from MRREL where CUI2 = '{}'" \
-        "AND SAB = 'MTH' AND (REL = 'RN' OR REL = 'CHD')"
-
 
 # Check the initial parent queue for top level concepts
 for i in range(len(parentList)):
@@ -293,11 +289,14 @@ if TIMETRACKING:
                                                     currentTime - lastTime)
     lastTime = currentTime
 
+# Establish string for queries
+query = "SELECT CUI1, REL, CUI2, SAB from MRREL where CUI2 = '{}'" \
+        "AND SAB = 'MTH' AND (REL = 'RN' OR REL = 'CHD')"
+
 
 # Relationship Harvesting: Loops through the Parent Queue making queries until
 # all relationships relevant to the input CUIs are gathered
 while True:
-    # Break when parent queue is empty
     if not parentList:
         break
 
@@ -365,49 +364,27 @@ if TIMETRACKING:
                                                     currentTime - lastTime)
     lastTime = currentTime
 
-translatedDict = translateDictionary(relationsDict, cur)
-
-# Tracks time taken
-if TIMETRACKING:
-    currentTime = datetime.now()
-    print "It took {} to translate relationsDict".format(\
-                                                    currentTime - lastTime)
-    lastTime = currentTime
-
-# Will Contain the 'translated 'input CUIs in a cui-name format for easier
-# readability
-translatedLeaves = translateList (leaves, cur)
-
-# Tracks time taken
-if TIMETRACKING:
-    currentTime = datetime.now()
-    print "It took {} to translate leaves from concepts to descriptions".format(\
-                                                    currentTime - lastTime)
-    lastTime = currentTime
 
 # Will hold the hierarchy while being built and cleaned up
 inProgressHier = defaultdict(list)
-
-# Keeps track of the topTier translated
-translatedTopHier = translateList (topTier, cur)
 
 # Keeps tracks of loops encountered
 loopsDict = defaultdict(list)
 
 
 # Create the initial hierarchy, by following pathways from topTier CUIs
-for pNameCui in translatedTopHier:
+for parentCui in topTier:
     # Save parent and child for traversal
-    if (translatedDict.has_key(pNameCui)):
-        childList = translatedDict[pNameCui]
+    if (relationsDict.has_key(parentCui)):
+        childList = relationsDict[parentCui]
     else:
         continue
 
     # Add the Top Level Concept to the dictionary
-    inProgressHier[pNameCui].append("holder")
-    pathSoFar = [pNameCui]
-    cleanUpRelations(pathSoFar, translatedLeaves, pNameCui, inProgressHier,\
-                      translatedDict, pNameCui, childList, loopsDict)
+    inProgressHier[parentCui].append("holder")
+    pathSoFar = [parentCui]
+    cleanUpRelations(pathSoFar, leaves, parentCui, inProgressHier,\
+                      relationsDict, parentCui, childList, loopsDict)
 
 # Save the initial hierarchy created pre-cleanup if debug is on
 if debugOn:
@@ -432,23 +409,23 @@ while True:
     redundantRelations = 0
 
     # Eliminate redundant relationships in the hierarchy
-    for cui in translatedTopHier:
+    for cui in topTier:
         ancestorList = []
         redundantRelations += reduceRedundancy(ancestorList, inProgressHier, \
-                        cui, inProgressHier[cui], translatedLeaves)
+                        cui, inProgressHier[cui], leaves)
 
 
     finishedHier = defaultdict(list) # will hold the final hierarchy
 
     # Re clean up relationships
-    for cui in translatedTopHier:
+    for cui in topTier:
         # Add holder entry to top tier concept
         if cui not in finishedHier:
             finishedHier[cui].append("holder")
 
         pathSoFar = [cui]
 
-        cleanUpRelations(pathSoFar, translatedLeaves, cui, finishedHier, \
+        cleanUpRelations(pathSoFar, leaves, cui, finishedHier, \
                          inProgressHier, cui, inProgressHier[cui] )
 
     inProgressHier = finishedHier
@@ -493,15 +470,25 @@ if TIMETRACKING:
                                                     currentTime - lastTime)
     lastTime = currentTime
 
+# Translate the finished hierarchy, leaves, and topHierarchy before writing
+# it to the output file
+translatedLeaves = translateList (leaves, cur)
+translatedFinishedHier = translateDictionary (finishedHier, cur)
+translatedTopTier = translateList (topTier, cur)
+translatedLoopsDict = translateDictionary (loopsDict, cur, True)
+
 # Write the relations to file in OWL format
-writeToFile (translatedLeaves, finishedHier, configs['finalHierarchyFile'], \
-             translatedTopHier, loopsDict)
+writeToFile (translatedLeaves, translatedFinishedHier,\
+             configs['finalHierarchyFile'], translatedTopTier,\
+             translatedLoopsDict)
 
 # When debug mode is on, also write the initial hierarchy created before
 # cleanup to a separate file
 if debugOn:
-    writeToFile (translatedLeaves, initialHierarchy,\
-                configs['dirtyHierarchyFile'], translatedTopHier, loopsDict)
+    translatedInitialHierarchy = translateDictionary(initialHierarchy, cur)
+    writeToFile (translatedLeaves, translatedInitialHierarchy,\
+                configs['dirtyHierarchyFile'], translatedTopTier,\
+                translatedLoopsDict)
 
 # Tracks time taken
 if TIMETRACKING:
@@ -513,12 +500,16 @@ if TIMETRACKING:
 # Log results
 if debugOn:
     logFile.write("\nFinal RelationsDict: {}\n".format(str(relationsDict)))
-    logFile.write("\nFinal translatedRelationsDict: {}\n".format(str(translatedDict)))
+    logFile.write("\nFinal TranslatedRelationsDict: {}\n".format(\
+            str(translateDictionary(relationsDict, cur))))
     logFile.write("\nFinal Leaves: {}\n".format(str(leaves)))
-    logFile.write("\nFinal TranslatedLeaves: {}\n".format(str(translatedLeaves)))
-    logFile.write("\nFinal loopsDict: {}\n".format(str(loopsDict)))
-    logFile.write("\nFinal initialHierarchy: {}\n".format(str(initialHierarchy)))
-    logFile.write("\nFinal finishedHier: {}\n".format(str(finishedHier)))
+    logFile.write("\nFinal TranslatedLeaves: {}\n".format(\
+            str(translatedLeaves)))
+    logFile.write("\nFinal loopsDict: {}\n".format(str(translatedLoopsDict)))
+    logFile.write("\nFinal TranslatedInitialHierarchy: {}\n".format(\
+            str(translatedInitialHierarchy)))
+    logFile.write("\nFinal FinishedHier: {}\n".format(\
+            str(translatedFinishedHier)))
     logFile.write("\n\nLog finished : {}---------------------------------------------------" \
                 "-----------------------------------------\n".format( \
                     datetime.today()))

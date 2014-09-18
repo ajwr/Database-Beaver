@@ -47,12 +47,12 @@ def cleanUpRelations(progressList, leaves, pValid, cleanRelations, translatedDic
     Input:
         progressList: List object that keeps track of the nodes already
                       traversed. Used for loop detection.
-        leaves: List object containing the translated input CUIs
-        pValid: Holds the cui-name of the last valid parent
+        leaves: List object containing the input CUIs
+        pValid: Holds the cui of the last valid parent
         cleanRelations: Dictionary object holding the new cleaned-up dictionary
         translatedDict: Dictionary object containing the relationships and nodes
                         to be cleaned up
-        parent: Holds the cui-name of the current parent being traversed
+        parent: Holds the cui of the current parent being traversed
         childList: List object that holds the list of children for the current
                    parent
         loopsDict: Dictionary object that saves the loops found during clean-up
@@ -151,11 +151,11 @@ def reduceRedundancy(ancestorList, relationsDict, parent, childList, \
         relationsDict: Dictionary containing the relationships to be
                        cleaned-up. Directly alters this dictionary object for
                                    implicit return.
-        parent: String containing the cui-name of the current parent being
+        parent: String containing the cui of the current parent being
                 traversed.
-        childList: List containing the cui-names of the children of the current
+        childList: List containing the cuis of the children of the current
                    parent.
-        translatedLeaves: List containing the input CUIs (in cui-name form)
+        translatedLeaves: List containing the input CUIs
 
     """
     relationsRemoved = 0
@@ -300,9 +300,9 @@ def isContainedIn (loopsDict, toFind, parent):
     IOnput:
         loopsDict: Dictionary to check against for the presence of the node
                    toFind.
-        toFind: String naming the cui-name of the node to check for in the
+        toFind: String naming the cui of the node to check for in the
                 loopsDict.
-        parent: String naming the cui-name of the current parent node being
+        parent: String naming the cui of the current parent node being
                 traversed while checking for the toFind node.
     """
 
@@ -319,14 +319,14 @@ def isContainedIn (loopsDict, toFind, parent):
     return False
 
 
-# Determines if two cuiName combinations contain the same CUI
+# Determines if two cui-loop# combinations contain the same CUI
 def matches (name1, name2):
-    """Determine if two cui-name combinations describe the same concept (have
+    """Determine if two cui-loop# combinations describe the same concept (have
     matching cuis). Returns True if the cuis match, false otherwise.
 
     Input:
-        name1: String representing the cui-name to check against name2.
-        name2: String representing the cui-name to check against name1.
+        name1: String representing the cui-loop# to check against name2.
+        name2: String representing the cui-loop# to check against name1.
     """
 
     iterator = 0 # Tracks the number of cui characters checked
@@ -412,32 +412,40 @@ def removeIllegalChars (cuiName):
 
     return cuiName
 
-def translateDictionary (untranslatedDict, dbCursor):
+def translateDictionary (untranslatedDict, dbCursor, isLoopsDict = False):
     """Translates a dictionary passed in by adding the Preferred Term or
     English term to the end of the CUI. Returns the translated dictionary
 
     Input:
         untranslatedDict - the dictionary to be translated
-        dbCursor - the database cursor used for querying"""
+        dbCursor - the database cursor used for querying
+        isLoopsDict - default is false, when true it only uses the CUI of the
+                      cui-loop# combination"""
 
     translatedDict = defaultdict(list)
 
     # Translate the untranslatedDict from concepts to descriptions
     stringQuery = "SELECT TTY, STR, LAT from MRCONSO where CUI = '{}' "
     for parent, childList in untranslatedDict.items():
+        # Format the parent if from loopsDict
+        if isLoopsDict:
+            queryParent = parent[:8] # Removes loop count
+        else:
+            queryParent = parent
         # Add the parent concept to the dictionary with string name
         try:
-            dbCursor.execute(stringQuery.format(parent))
+            dbCursor.execute(stringQuery.format(queryParent))
 
         except MySQLdb.Error, e:
             try:
                 # Prints the error
                 print "MySQL Error [{}]: {} --- while querying {}".format(\
-                                                    e.args[0], e.args[1], parent)
+                                                e.args[0], e.args[1], parent)
 
             except IndexError:
                 # Prints the 1 argument error
-                print "MySQL Error: {} --- while querying {}".format(str(e), parent)
+                print "MySQL Error: {} --- while querying {}".format(\
+                                                str(e), parent)
 
             sys.exit()
 
@@ -450,6 +458,8 @@ def translateDictionary (untranslatedDict, dbCursor):
         # Handle misc case
         if parent == 'misc':
             pName = 'misc'
+        if parent == 'loops':
+            pName = 'loops'
         else:
             # Save Parent's Name
             pName = "{}".format(determinePreferred (pRows))
@@ -457,8 +467,14 @@ def translateDictionary (untranslatedDict, dbCursor):
 
         # Fetch Children names and add to the translated dict
         for child in childList:
+            # Format child names if it is a loops dictionary
+            if isLoopsDict:
+                queryChild = child[:8]
+            else:
+                queryChild = child
+
             try:
-                dbCursor.execute(stringQuery.format(child))
+                dbCursor.execute(stringQuery.format(queryChild))
 
             except MySQLdb.Error, e:
                 try:
