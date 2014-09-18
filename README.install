@@ -47,22 +47,25 @@ PREREQUISITES (UBUNTU)
 ----------------------
 Ubuntu Version 12.04
 Python Version 2.7+
-MySQL Server Version 5.5+
-python-mysqldb Version 1.2.3 (Install python-mysqldb 'apt-get install 
-                              python-mysqldb')
+Git Version 1.7.9+ (you caninstall via 'sudo apt-get install git')
+MySQL Server Version 5.5+ (you can install via:
+    'sudo apt-get install mysql-client-core-5.5')
+python-mysqldb Version 1.2.3 (you can install via:
+    'sudo apt-get install python-mysqldb')
 
 
 PREREQUISITES (CENTOS)
 ----------------------
 CentOS Version 6.5
 Python Version 2.7+
+Git Version 1.7.9+ (you can install via 'sudo yum install git')
 MySQL Server Version 5.5+
-mysql-python (Install python-mysqldb via 'easy_install MySQL-python')
+mysql-python (you can install via 'sudo yum install MySQL-python')
 
 
 INSTALLATION STEPS
 ------------------
-1. git from repository: https://github.com/ajwr/Database-Beaver
+1. git from repository: git clone https://github.com/ajwr/Database-Beaver
 2a. Set up configuration file (config.txt). Use the following format:
 
 [File Start]
@@ -113,7 +116,7 @@ files from the configuration file will be used.
 NOTE: Be sure the inputCUIFile and topLevelTierFile are formatted according to
 the guidelines indicated by the INPUT FILE FORMAT SPECIFICATIONS below
 
-For example:
+For example (parameters contained in '[]' are optional):
 UMLSSubsetBuilder.py inputCUIFile topLevelTierFile outputFile [-x DebugMode][logFile][dirtyHierarchyFile]
 or
 UMLSSubsetBuilder.py [-x DebugMode][logFile][dirtyHierarchyFile]
