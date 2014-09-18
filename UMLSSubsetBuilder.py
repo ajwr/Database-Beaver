@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 from collections import defaultdict
 from hierarchyBuilder import cleanUpRelations, writeToFile, reduceRedundancy, \
-    determinePreferred, areValidArguments
+    areValidArguments, translateDictionary, translateList
 
 """This program develops a hierarchy from a set of input CUIs. Outputs the
 hierarchy in OWL format for use with Protege.
@@ -111,6 +111,9 @@ if not areValidArguments(sys.argv):
 
     sys.exit()
 
+# Print Progress update
+sys.stdout.write("Step Intialiazing datastructures and establishing connecting to" \
+                 "MySQL database . ")
 
 # Open configuration file for accessing the UMLS database
 try:
@@ -362,73 +365,7 @@ if TIMETRACKING:
                                                     currentTime - lastTime)
     lastTime = currentTime
 
-
-# Contains the complete initial relationsDict translated by adding the
-# preferred English name of the CUI to the end of the CUI to create a cui-name
-# format; used for debug purposes
-translatedDict = defaultdict(list)
-
-# Translate the relationsDict from concepts to descriptions
-stringQuery = "SELECT TTY, STR, LAT from MRCONSO where CUI = '{}' "
-for parent, childList in relationsDict.items():
-    # Add the parent concept to the dictionary with string name
-    try:
-        cur.execute(stringQuery.format(parent))
-
-    except MySQLdb.Error, e:
-        try:
-            # Prints the error
-            print "MySQL Error [{}]: {} --- while querying {}".format(\
-                                                e.args[0], e.args[1], parent)
-
-        except IndexError:
-            # Prints the 1 argument error
-            print "MySQL Error: {} --- while querying {}".format(str(e), parent)
-
-        sys.exit()
-
-
-
-    # Fetch parent's name
-    pRows = cur.fetchall()
-
-
-    # Handle misc case
-    if parent == 'misc':
-        pName = 'misc'
-    else:
-        # Save Parent's Name
-        pName = "{}".format(determinePreferred (pRows))
-        pName = "{}-".format(parent) + pName
-
-    # Fetch Children names and add to the translated dict
-    for child in childList:
-        try:
-            cur.execute(stringQuery.format(child))
-
-        except MySQLdb.Error, e:
-            try:
-                # Prints the error
-                print "MySQL Error [{}]: {} --- while querying {}".format(\
-                                    e.args[0], e.args[1], child)
-
-            except IndexError:
-                # Prints the 1 argument error
-                print "MySQL Error: {} --- while querying {}".format(str(e),\
-                                                                     child)
-
-        # Fetch child's names
-        cRows = cur.fetchall()
-
-        # Save the name
-        if child == 'holder':
-            cName = 'holder'
-        else:
-            cName = "{}".format(determinePreferred(cRows))
-            cName = "{}-".format(child) + cName
-
-        # Add child too dictionary
-        translatedDict[pName].append(cName)
+translatedDict = translateDictionary(relationsDict, cur)
 
 # Tracks time taken
 if TIMETRACKING:
@@ -437,37 +374,9 @@ if TIMETRACKING:
                                                     currentTime - lastTime)
     lastTime = currentTime
 
-# Contains the 'translated 'input CUIs in a cui-name format for easier
+# Will Contain the 'translated 'input CUIs in a cui-name format for easier
 # readability
-translatedLeaves = []
-# Translate the leaves from concepts to descriptions
-stringQuery = "SELECT TTY, STR, LAT from MRCONSO where CUI = '{}' "
-for leaf in leaves:
-    # Add the parent concept to the dictionary with string name
-    try:
-        cur.execute(stringQuery.format(leaf))
-
-    except MySQLdb.Error, e:
-        try:
-            # Prints the error
-            print "MySQL Error [{}]: {} --- while querying {}".format(\
-                                                e.args[0], e.args[1], leaf)
-
-        except IndexError:
-            # Prints the 1 argument error
-            print "MySQL Error: {} --- while querying {}".format(str(e), leaf)
-
-
-
-    # Fetch leaf's name
-    lRows = cur.fetchall()
-
-    # Save Parent's Name
-    lName = "{}".format(determinePreferred(lRows))
-    lName = "{}-".format(leaf) + lName
-
-    # Add child too dictionary
-    translatedLeaves.append(lName)
+translatedLeaves = translateList (leaves, cur)
 
 # Tracks time taken
 if TIMETRACKING:
@@ -480,39 +389,14 @@ if TIMETRACKING:
 inProgressHier = defaultdict(list)
 
 # Keeps track of the topTier translated
-translatedTopHier =[]
+translatedTopHier = translateList (topTier, cur)
 
 # Keeps tracks of loops encountered
 loopsDict = defaultdict(list)
 
 
 # Create the initial hierarchy, by following pathways from topTier CUIs
-for cui in topTier:
-    # Query the cui to obtain its name
-    try:
-        cur.execute("SELECT TTY, STR, LAT from MRCONSO where CUI = '{}'".format(cui))
-    except MySQLdb.Error, e:
-        try:
-            # Prints the error
-            print "MySQL Error [{}]: {} --- while querying {}".format(\
-                                                    e.args[0], e.args[1], cui)
-
-        except IndexError:
-            # Prints the 1 argument error
-            print "MySQL Error: {} --- while querying {}".format(str(e),cui)
-
-
-
-    # Fetch parent's name
-    pName = cur.fetchall()
-
-    pNameCui = "{}".format(determinePreferred(pName))
-
-    pNameCui = "{}-".format(cui) + pNameCui
-
-    # Save the translated cui name combination
-    translatedTopHier.append(pNameCui)
-
+for pNameCui in translatedTopHier:
     # Save parent and child for traversal
     if (translatedDict.has_key(pNameCui)):
         childList = translatedDict[pNameCui]

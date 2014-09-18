@@ -1,6 +1,7 @@
-from __future__ import print_function
 from owlwriter import ontology
 from collections import defaultdict
+import MySQLdb
+import sys
 
 """Supplementory file  containing functions to build the Hierarchy \
     and clean up the relationships
@@ -178,7 +179,7 @@ def reduceRedundancy(ancestorList, relationsDict, parent, childList, \
 
                     relationsRemoved += 1
                 except KeyError:
-                    #print ("KeyError when accessing {}".format(ancestor))
+                    print ("KeyError when accessing {}".format(ancestor))
                     return
 
                 # Add the fixed ancestor
@@ -411,3 +412,118 @@ def removeIllegalChars (cuiName):
 
     return cuiName
 
+def translateDictionary (untranslatedDict, dbCursor):
+    """Translates a dictionary passed in by adding the Preferred Term or
+    English term to the end of the CUI. Returns the translated dictionary
+
+    Input:
+        untranslatedDict - the dictionary to be translated
+        dbCursor - the database cursor used for querying"""
+
+    translatedDict = defaultdict(list)
+
+    # Translate the untranslatedDict from concepts to descriptions
+    stringQuery = "SELECT TTY, STR, LAT from MRCONSO where CUI = '{}' "
+    for parent, childList in untranslatedDict.items():
+        # Add the parent concept to the dictionary with string name
+        try:
+            dbCursor.execute(stringQuery.format(parent))
+
+        except MySQLdb.Error, e:
+            try:
+                # Prints the error
+                print "MySQL Error [{}]: {} --- while querying {}".format(\
+                                                    e.args[0], e.args[1], parent)
+
+            except IndexError:
+                # Prints the 1 argument error
+                print "MySQL Error: {} --- while querying {}".format(str(e), parent)
+
+            sys.exit()
+
+
+
+        # Fetch parent's name
+        pRows = dbCursor.fetchall()
+
+
+        # Handle misc case
+        if parent == 'misc':
+            pName = 'misc'
+        else:
+            # Save Parent's Name
+            pName = "{}".format(determinePreferred (pRows))
+            pName = "{}-".format(parent) + pName
+
+        # Fetch Children names and add to the translated dict
+        for child in childList:
+            try:
+                dbCursor.execute(stringQuery.format(child))
+
+            except MySQLdb.Error, e:
+                try:
+                    # Prints the error
+                    print "MySQL Error [{}]: {} --- while querying {}".format(\
+                                        e.args[0], e.args[1], child)
+
+                except IndexError:
+                    # Prints the 1 argument error
+                    print "MySQL Error: {} --- while querying {}".format(str(e),\
+                                                                        child)
+
+            # Fetch child's names
+            cRows = dbCursor.fetchall()
+
+            # Save the name
+            if child == 'holder':
+                cName = 'holder'
+            else:
+                cName = "{}".format(determinePreferred(cRows))
+                cName = "{}-".format(child) + cName
+
+            # Add child too dictionary
+            translatedDict[pName].append(cName)
+
+    return translatedDict
+
+def translateList (untranslatedList, dbCursor):
+    """Translates an inputted list by adding the Preferred Term or English
+    term to the end of the CUI. Returns the translated list.
+
+    Input:
+        untranslatedList: the list to be translated
+        dbCursor: the database cursor for querying"""
+
+    translatedLeaves = []
+
+    # Translate the leaves from concepts to descriptions
+    stringQuery = "SELECT TTY, STR, LAT from MRCONSO where CUI = '{}' "
+    for cui in untranslatedList:
+        # Add the parent concept to the dictionary with string name
+        try:
+            dbCursor.execute(stringQuery.format(cui))
+
+        except MySQLdb.Error, e:
+            try:
+                # Prints the error
+                print "MySQL Error [{}]: {} --- while querying {}".format(\
+                                                    e.args[0], e.args[1], cui)
+
+            except IndexError:
+                # Prints the 1 argument error
+                print "MySQL Error: {} --- while querying {}".format(str(e), cui)
+
+
+
+        # Fetch leaf's name
+        lRows = dbCursor.fetchall()
+
+        # Save Parent's Name
+        lName = "{}".format(determinePreferred(lRows))
+        lName = "{}-".format(cui) + lName
+
+        # Add child too dictionary
+        translatedLeaves.append(lName)
+
+
+    return translatedLeaves
