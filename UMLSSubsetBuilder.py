@@ -330,8 +330,6 @@ while True:
 
     # Add current node to misc category if it has no parents
     if not rows:
-        if (pParent not in relationsDict["misc"]):
-            relationsDict["misc"].append(pParent)
         continue
 
     # Process the resulting query
