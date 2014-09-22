@@ -183,6 +183,15 @@ created pre-cleanup to the file specified by either the commandline arugments
 or, by default, in the configuration file. The rules will not be applied to 
 this hierarchy.
 
+Also enables Timetracking mode (see below for more information).
+
+TIMETRACKING MODE INFO
+----------------------
+Timetracking mode will print unbuffered messaged to the console describing the
+time taken during various steps.
+
+DebugMode enables timetracking mode.
+
 
 FILE DESCRIPTIONS
 -----------------

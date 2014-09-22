@@ -27,12 +27,8 @@ Input:
     topTier    = The file containing the top-level CUIs to build the hierarchy
                  up to.
     finalHierarchyFile = The file to output the FinalHierarchy to.
-    -x         = [Optional] Will enable debug mode which will log various
-                 datastructures created as well as the number of
-                 relationships removed in each run through the redundancy
-                 reduction algorithm. It will also save the initial hierarchy
-                 created to the file specified in the configuration file. See
-                 the README file for more information on debug mode.
+    -x         = [Optional] Will enable debug mode  See the README file for
+                 more information on debug mode.
     logfile    = [Optional] If provided, The file to log to when debug mode
                  is enabled.
     dirtyHierarchyFile = [Optional] When debug mode is enabled, if provided,
@@ -78,9 +74,9 @@ LINENUMBER = 10 # Line number of MAXREDUNDANT variables
 CONFIGURATIONFILE = 'config.txt'
 debugOn = False # Debug mode default is off
 
+# Timetracking Functionality
 startTime = datetime.now()
 lastTime = startTime # Time script was started, used to track progress
-TIMETRACKING = True
 timeElapsed = 0
 
 # Unbuffered stdout
@@ -111,21 +107,21 @@ if not areValidArguments(sys.argv):
 
     sys.exit()
 
-# Print Progress update
-sys.stdout.write("Step Intialiazing datastructures and establishing connecting to" \
-                 "MySQL database . ")
 
 # Open configuration file for accessing the UMLS database
 try:
     configFile = open(CONFIGURATIONFILE,'r')
 except IOError:
-    print "IOError when trying to open configuration file ({}).".format(\
+    print "\nIOError when trying to open configuration file ({}).".format(\
                                                         CONFIGURATIONFILE)
     sys.exit()
 except NameError:
-    print "NameError when trying to open configuration file ({}).".format(\
+    print "\nNameError when trying to open configuration file ({}).".format(\
                                                         CONFIGURATIONFILE)
     sys.exit()
+
+# Progress Message
+sys.stdout.write( "Step 1 of 6: Establishing connection to database . . . ")
 
 
 # Set the configuration variables for accesing the UMLS
@@ -150,10 +146,10 @@ for configLine in configFile:
 for attribute in configAttributes:
     # Print error message if an attribute is not present
     if attribute not in configs:
-        print "Error: {} not provided in configuration file.".format(attribute)
+        print "\nError: {} not provided in configuration file.".format(attribute)
 
         #Print error message for config file format
-        print """Configuration file is improperly formatted.
+        print """\nConfiguration file is improperly formatted.
         Please refer to the README.install file for formatting guidelines."""
 
         sys.exit()
@@ -200,17 +196,15 @@ if (len(sys.argv) == 4 and not debugOn) or (len(sys.argv) > 4):
 try:
     inFile = open(configs['inputCUIFile'], 'r')
 except IOError, NameError:
-    print "An Error occurred while trying to open {}".format(\
+    print "\nAn Error occurred while trying to open {}".format(\
                                             configs['inputCUIFile'])
     sys.exit()
 try:
     topTierFile = open(configs['topLevelTierFile'], 'r')
 except IOError, NameError:
-    print "An Error occurred while trying to open {}".format(\
+    print "\nAn Error occurred while trying to open {}".format(\
                                             configs['topLevelTierFile'])
     sys.exit()
-
-
 
 
 # Create hierarchy sets from files
@@ -230,12 +224,6 @@ childrenSet = set()
 # much excess information irrelevant to the final hierarchy
 relationsDict = defaultdict(list)
 
-# Tracks time taken
-if TIMETRACKING:
-    currentTime = datetime.now()
-    print "It took {} to intilaize all dictionaries, sets, and lists".format(\
-                                                    currentTime - lastTime)
-    lastTime = currentTime
 
 # Establish a connection and cursor to MySQL UMLS database
 # Connect to MySQL server
@@ -261,11 +249,15 @@ except MySQLdb.Error, e:
 cur = cnx.cursor()
 
 # Tracks time taken
-if TIMETRACKING:
+if debugOn:
     currentTime = datetime.now()
-    print "It took {} to establish connection to MySQL and establish cursor".format(\
-                                                    currentTime - lastTime)
+    print "Took: {} ".format(currentTime - lastTime)
     lastTime = currentTime
+else: # Print finish message
+    print "Done!"
+
+# Progress Message
+sys.stdout.write("Step 2 of 6: Gathering Relationships . . . ")
 
 
 # Check the initial parent queue for top level concepts
@@ -282,12 +274,6 @@ for i in range(len(parentList)):
     else:
         parentList.append(temp)
 
-# Tracks time taken
-if TIMETRACKING:
-    currentTime = datetime.now()
-    print "It took {} to check the initial parent queue for top lvl concepts".format(\
-                                                    currentTime - lastTime)
-    lastTime = currentTime
 
 # Establish string for queries
 query = "SELECT CUI1, REL, CUI2, SAB from MRREL where CUI2 = '{}'" \
@@ -356,11 +342,15 @@ while True:
             parentList.append(cui1)
 
 # Tracks time taken
-if TIMETRACKING:
+if debugOn:
     currentTime = datetime.now()
-    print "It took {} to gather all initial relationships".format(\
-                                                    currentTime - lastTime)
+    print "Took: {}".format(currentTime - lastTime)
     lastTime = currentTime
+else:
+    print "Done!"
+
+# Progress Message
+sys.stdout.write("Step 3 of 6: Building Initial Hierarchy . . . ")
 
 
 # Will hold the hierarchy while being built and cleaned up
@@ -389,11 +379,15 @@ if debugOn:
     initialHierarchy = inProgressHier
 
 # Tracks time taken
-if TIMETRACKING:
+if debugOn:
     currentTime = datetime.now()
-    print "It took {} to create initial hierarchy".format(\
-                                                    currentTime - lastTime)
+    print "Took: {}".format(currentTime - lastTime)
     lastTime = currentTime
+else:
+    print "Done!"
+
+# Progress Message
+sys.stdout.write("Step 4 of 6: Cleaning the Hierarchy . . . ")
 
 #Tracks the number of time hierarchy cleanup has yielded the same cleanup count
 redundantCleanUpCount = 1
@@ -462,11 +456,15 @@ while True:
     previousCleanUp = redundantRelations
 
 # Tracks time taken
-if TIMETRACKING:
+if debugOn:
     currentTime = datetime.now()
-    print "It took {} to finish cleaning the hieararchy".format(\
-                                                    currentTime - lastTime)
+    print "Took: {}".format(currentTime - lastTime)
     lastTime = currentTime
+else:
+    print "Done!"
+
+# Progress Message
+sys.stdout.write("Step 5 of 6: Translating Final Hierarchy . . . ")
 
 # Translate the finished hierarchy, leaves, and topHierarchy before writing
 # it to the output file
@@ -474,6 +472,17 @@ translatedLeaves = translateList (leaves, cur)
 translatedFinishedHier = translateDictionary (finishedHier, cur)
 translatedTopTier = translateList (topTier, cur)
 translatedLoopsDict = translateDictionary (loopsDict, cur, True)
+
+# Tracks time taken
+if debugOn:
+    currentTime = datetime.now()
+    print "Took: {}".format(currentTime - lastTime)
+    lastTime = currentTime
+else:
+    print "Done!"
+
+# Progress Message
+sys.stdout.write("Step 6 of 6: Writing Hierarchy to File . . . ")
 
 # Write the relations to file in OWL format
 writeToFile (translatedLeaves, translatedFinishedHier,\
@@ -489,11 +498,12 @@ if debugOn:
                 translatedLoopsDict)
 
 # Tracks time taken
-if TIMETRACKING:
+if debugOn:
     currentTime = datetime.now()
-    print "It took {} to write hierarchy to file".format(\
-                                                    currentTime - lastTime)
+    print "Took: {}".format(currentTime - lastTime)
     lastTime = currentTime
+else:
+    print "Done!"
 
 # Log results
 if debugOn:
@@ -526,9 +536,9 @@ cur.close()
 cnx.close()
 
 # Tracks time taken
-if TIMETRACKING:
+if debugOn:
     currentTime = datetime.now()
-    print "It took {} to finish remainder\nTook {} total for {} leaves".format(\
-                    currentTime - lastTime, currentTime - startTime, len(leaves))
-    lastTime = currentTime
+    print "Took {} total for {} leaves".format(\
+        currentTime - lastTime, len(leaves))
 
+print "Finished!"
