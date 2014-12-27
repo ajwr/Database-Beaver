@@ -35,10 +35,12 @@ Permission to make commercial use of this software may be obtained by contacting
     MODIFICATIONS.
 """
 
+# CONSTANT DEFINITIONS
+MAXCUILENGTH = 8
 
 # Cleans up the passed in translated dictionary by removing unneccessary
 # Nodes in the hierarchy
-def cleanUpRelations(progressList, leaves, pValid, cleanRelations, translatedDict, \
+def cleanUpRelations(progressList, leaves, pValid, cleanRelations, dirtyDict, \
                      parent, childList, loopsDict = defaultdict(list)):
     """Cleans up the passed in translated dictionary by removing nodes
     violating the Two or More Children Policy. Returns the new hierarchy
@@ -50,7 +52,7 @@ def cleanUpRelations(progressList, leaves, pValid, cleanRelations, translatedDic
         leaves: List object containing the input CUIs
         pValid: Holds the cui of the last valid parent
         cleanRelations: Dictionary object holding the new cleaned-up dictionary
-        translatedDict: Dictionary object containing the relationships and nodes
+        dirtyDict: Dictionary object containing the relationships and nodes
                         to be cleaned up
         parent: Holds the cui of the current parent being traversed
         childList: List object that holds the list of children for the current
@@ -134,8 +136,8 @@ def cleanUpRelations(progressList, leaves, pValid, cleanRelations, translatedDic
         pathSoFar.append(child)
 
         #Recursive call
-        cleanUpRelations(pathSoFar, leaves, valid, cleanRelations, translatedDict, \
-                         child, translatedDict[child], loopsDict)
+        cleanUpRelations(pathSoFar, leaves, valid, cleanRelations, dirtyDict, \
+                         child, dirtyDict[child], loopsDict)
 
 
 # Eliminates redundant relationships in the hierarchy
@@ -319,9 +321,9 @@ def isContainedIn (loopsDict, toFind, parent):
     return False
 
 
-# Determines if two cui-loop# combinations contain the same CUI
+# Determines if two cui-loops combinations contain the same CUI
 def matches (name1, name2):
-    """Determine if two cui-loop# combinations describe the same concept (have
+    """Determine if two cui-loops combinations describe the same concept (have
     matching cuis). Returns True if the cuis match, false otherwise.
 
     Input:
@@ -331,7 +333,7 @@ def matches (name1, name2):
 
     iterator = 0 # Tracks the number of cui characters checked
     # Check for a match between the CUIs
-    while iterator != 8:
+    while iterator < MAXCUILENGTH:
         # Check for matching letter
         if name1[iterator] == name2[iterator]:
             iterator += 1
@@ -366,6 +368,8 @@ def determinePreferred (ttyStrLatQuery):
     # If not preferred term, use the first English term available
     return removeIllegalChars(englishTerm)
 
+
+# Processes the input arguments
 def areValidArguments(arguments):
     """Returns true if the commandline arguments passed are valid.
 
