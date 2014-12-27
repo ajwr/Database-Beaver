@@ -351,10 +351,13 @@ else:
 
 # If debugging is on, translate the dictionaries and lists prematurely
 if debugOn:
-    print "Step 2.5 of 6: Translating Relations (DEBUG MODE) . . . "
+    sys.stdout.write( "Step 2.5 of 6: Translating Relations (DEBUG MODE) . . . ")
     topTier = translateList( topTier, cur )
     relationsDict = translateDictionary( relationsDict, cur )
     leaves = translateList( leaves, cur )
+    currentTime = datetime.now()
+    print "Took: {}".format(currentTime - lastTime)
+    lastTime = currentTime
 
 # Progress Message
 sys.stdout.write("Step 3 of 6: Building Initial Hierarchy . . . ")
@@ -546,6 +549,6 @@ cnx.close()
 if debugOn:
     currentTime = datetime.now()
     print "Took {} total for {} leaves".format(\
-        currentTime - lastTime, len(leaves))
+        currentTime - startTime, len(leaves))
 
 print "Finished!"
