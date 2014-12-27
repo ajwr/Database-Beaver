@@ -277,7 +277,7 @@ for i in range(len(parentList)):
 
 # Establish string for queries
 query = "SELECT CUI1, REL, CUI2, SAB from MRREL where CUI2 = '{}'" \
-        "AND SAB = 'MTH' AND (REL = 'RN' OR REL = 'CHD')"
+        "AND SAB = 'SNOMEDCT_US' AND (REL = 'RN' OR REL = 'CHD')"
 
 
 # Relationship Harvesting: Loops through the Parent Queue making queries until
@@ -348,6 +348,13 @@ if debugOn:
     lastTime = currentTime
 else:
     print "Done!"
+
+# If debugging is on, translate the dictionaries and lists prematurely
+if debugOn:
+    print "Step 2.5 of 6: Translating Relations (DEBUG MODE) . . . "
+    topTier = translateList( topTier, cur )
+    relationsDict = translateDictionary( relationsDict, cur )
+    leaves = translateList( leaves, cur )
 
 # Progress Message
 sys.stdout.write("Step 3 of 6: Building Initial Hierarchy . . . ")
