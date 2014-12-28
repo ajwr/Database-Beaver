@@ -276,7 +276,7 @@ for i in range(len(parentList)):
 
 
 # Establish string for queries
-query = "SELECT CUI1, REL, CUI2, SAB from MRREL where CUI2 = '{}'" \
+query = "SELECT CUI1, REL, CUI2, SAB, SUPPRESS from MRREL where CUI2 = '{}'" \
         "AND SAB = 'SNOMEDCT_US' AND (REL = 'RN' OR REL = 'CHD')"
 
 
@@ -325,7 +325,11 @@ while True:
         rel = result[1]
         cui2 = result[2]
         sab = result[3]
+        suppress = result[4]
 
+        # Skip inactive relationships (obsolete or due to SAB,TTY or editor)
+        if suppress == 'O' or suppress == 'Y' or suppress == 'E':
+            continue
 
         # Add the relationship to the Relationship Dictionary
         if (cui2 not in relationsDict[cui1]):
