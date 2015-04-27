@@ -407,7 +407,7 @@ sys.stdout.write("Step 4 of 6: Cleaning the Hierarchy . . . ")
 redundantCleanUpCount = 1
 previousCleanUp = -1 # Tracks last cleanup count
 
-# Loop through and eliminate the all redudant relationships then reclean until
+# Loop through and eliminate the redundant relationships then reclean until
 # of relationships eliminated due to redundancy is 0, automatically ends after
 # MAXREDUNDANT loop iterations yield the same # of redundant relations cleaned
 # up to account for situations causing an endless loop
@@ -482,10 +482,16 @@ sys.stdout.write("Step 5 of 6: Translating Final Hierarchy . . . ")
 
 # Translate the finished hierarchy, leaves, and topHierarchy before writing
 # it to the output file
-translatedLeaves = translateList (leaves, cur)
-translatedFinishedHier = translateDictionary (finishedHier, cur)
-translatedTopTier = translateList (topTier, cur)
-translatedLoopsDict = translateDictionary (loopsDict, cur, True)
+if not debugOn:
+    translatedLeaves = translateList (leaves, cur)
+    translatedFinishedHier = translateDictionary (finishedHier, cur)
+    translatedTopTier = translateList (topTier, cur)
+    translatedLoopsDict = translateDictionary (loopsDict, cur, True)
+else:
+    translatedLeaves = leaves
+    translatedFinishedHier = finishedHier
+    translatedTopTier = topTier
+    translatedLoopsDict = loopsDict
 
 # Tracks time taken
 if debugOn:
